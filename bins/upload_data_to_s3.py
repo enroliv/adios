@@ -14,7 +14,7 @@ import boto3
 import requests
 
 DATASET_URL = (
-    "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
+    "https://raw.githubusercontent.com/enroliv/adios/main/data/chart-data.csv"
 )
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -27,7 +27,7 @@ parser.add_argument(
 )
 
 
-class KeyExistsError(Exception):
+class DuplicateError(Exception):
     """Error raised whenever an S3 object key already exists."""
 
 
@@ -47,7 +47,7 @@ def main(_args: argparse.Namespace) -> None:
     bucket, key = parse_uri(uri)
     session = boto3.Session()
     if not replace and check_key_exists(bucket, key, session):
-        raise KeyExistsError("Specified object already exists.")
+        raise DuplicateError("Specified object already exists.")
 
     client = session.client("s3")
     with tempfile.NamedTemporaryFile("wb+") as tmp:
@@ -86,8 +86,8 @@ def check_key_exists(
         bool: File exists.
     """
     client = session.client("s3") if session else boto3.client("s3")
-    response = client.list_objects_v2(Bucket=bucket, Prefix=key)
-    for content in response.get("Contents"):
+    response: dict = client.list_objects_v2(Bucket=bucket, Prefix=key)
+    for content in response.get("Contents", []):
         if content["Key"] == key:
             return True
 
@@ -102,7 +102,7 @@ def download_samples_from_url(path: str) -> None:
     """
     with open(path, "wb") as out:
         response = requests.get(DATASET_URL, stream=True)
-        out.write(response.raw)
+        out.write(response.raw.read())
 
 
 if __name__ == "__main__":
