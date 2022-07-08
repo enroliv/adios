@@ -8,6 +8,7 @@ Description: Ingests the data from an S3 bucket into a postgres table.
 from airflow.models import DAG
 from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
+from airflow.operators.sql import BranchSQLOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.postgres.hooks.postgres import PostgresHook
@@ -19,11 +20,11 @@ DAG_ID = "database_ingestion_workflow"
 # AWS constants
 AWS_CONN_ID = "aws_default"
 S3_BUCKET_NAME = ""
-S3_KEY_NAME = "datasets/iris.csv"
+S3_KEY_NAME = "datasets/monthly-charts.csv"
 
 # Postgres constants
 POSTGRES_CONN_ID = "postgres_default"
-POSTGRES_TABLE_NAME = "iris"
+POSTGRES_TABLE_NAME = "monthly_charts"
 
 
 def ingest_data_from_s3(
@@ -68,13 +69,25 @@ with DAG(dag_id=DAG_ID, schedule_interval="@once") as dag:
         postgres_conn_id=POSTGRES_CONN_ID,
         sql=f"""
             CREATE TABLE IF NOT EXISTS {POSTGRES_TABLE_NAME} (
-                sepal_length NUMERIC,
-                sepal_width NUMERIC,
-                petal_length NUMERIC,
-                petal_width NUMERIC,
-                class varchar(50)
+                month VARCHAR(10),
+                position INTEGER,
+                artist VARCHAR(100),
+                song VARCHAR(100),
+                indicativerevenue NUMERIC,
+                us INTEGER,
+                uk INTEGER,
+                de INTEGER,
+                fr INTEGER,
+                ca INTEGER,
+                au INTEGER
             )
         """,
+    )
+
+    delete_data = PostgresOperator(
+        task_id="create_table_entity",
+        postgres_conn_id=POSTGRES_CONN_ID,
+        sql=f"DELETE FROM {POSTGRES_TABLE_NAME}",
     )
 
     ingest_data = PythonOperator(
@@ -89,13 +102,22 @@ with DAG(dag_id=DAG_ID, schedule_interval="@once") as dag:
         },
     )
 
+    validate_data = BranchSQLOperator(
+        task_id="validate_data",
+        conn_id=POSTGRES_CONN_ID,
+        sql=f"SELECT COUNT(*) AS total_rows FROM {POSTGRES_TABLE_NAME}",
+        follow_task_ids_if_false=[ingest_data.task_id],
+        follow_task_ids_if_true=[delete_data.task_id],
+    )
+
     end_workflow = DummyOperator(task_id="end_workflow")
 
     (
         start_workflow
         >> verify_key_existence
         >> create_table_entity
-        >> ingest_data
+        >> validate_data
+        >> [ingest_data, delete_data >> ingest_data]
         >> end_workflow
     )
 
