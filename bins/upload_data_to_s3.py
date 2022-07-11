@@ -101,8 +101,8 @@ def download_samples_from_url(path: str) -> None:
         path (str): Path to output file.
     """
     with open(path, "wb") as out:
-        response = requests.get(DATASET_URL, stream=True)
-        out.write(response.raw.read())
+        response = requests.get(DATASET_URL)
+        out.write(response.content)
 
 
 if __name__ == "__main__":
