@@ -18,7 +18,7 @@ from airflow.utils.trigger_rule import TriggerRule
 
 # General constants
 DAG_ID = "aws_database_ingestion_workflow"
-DATA_TYPE = "sample"
+STABILITY_STATE = "stable"
 CLOUD_PROVIDER = "aws"
 
 # AWS constants
@@ -28,7 +28,7 @@ S3_KEY_NAME = "datasets/monthly-charts.csv"
 
 # Postgres constants
 POSTGRES_CONN_ID = "ml_conn"
-POSTGRES_TABLE_NAME = "monthly_charts"
+POSTGRES_TABLE_NAME = "monthly_charts_data"
 
 
 def ingest_data_from_s3(
@@ -50,9 +50,6 @@ def ingest_data_from_s3(
     s3_hook = S3Hook(aws_conn_id=aws_conn_id)
     psql_hook = PostgresHook(postgres_conn_id)
     local_filename = s3_hook.download_file(key=s3_key, bucket_name=s3_bucket)
-    print(local_filename)
-    with open(local_filename, "r") as tmp:
-        print(tmp.readline())
     psql_hook.bulk_load(table=postgres_table, tmp_file=local_filename)
 
 
@@ -60,7 +57,7 @@ with DAG(
     dag_id=DAG_ID,
     schedule_interval="@once",
     start_date=days_ago(1),
-    tags=[CLOUD_PROVIDER, DATA_TYPE],
+    tags=[CLOUD_PROVIDER, STABILITY_STATE],
 ) as dag:
     start_workflow = DummyOperator(task_id="start_workflow")
 
