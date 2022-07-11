@@ -2,7 +2,7 @@
 
 Author: Enrique Olivares <enrique.olivares@wizeline.com>
 
-Description: Ingests the data from an S3 bucket into a postgres table.
+Description: Ingests the data from a GCS bucket into a postgres table.
 """
 
 from airflow.models import DAG
