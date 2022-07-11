@@ -21,7 +21,7 @@ def main():
     with conn.cursor() as cur:
         try:
             cur.execute("CREATE DATABASE ml_samples")
-        except DuplicateDatabase as _:
+        except DuplicateDatabase:
             print("Database already exists.")
         else:
             print("Database has been created successfully.")
