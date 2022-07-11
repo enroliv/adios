@@ -47,15 +47,10 @@ def ingest_data_from_s3(
         aws_conn_id (str): Name of the aws connection ID.
         postgres_conn_id (str): Name of the postgres connection ID.
     """
-    import tempfile
-
     s3_hook = S3Hook(aws_conn_id=aws_conn_id)
     psql_hook = PostgresHook(postgres_conn_id)
-    with tempfile.NamedTemporaryFile() as tmp:
-        s3_hook.download_file(
-            key=s3_key, bucket_name=s3_bucket, local_path=tmp.name
-        )
-        psql_hook.bulk_load(table=postgres_table, tmp_file=tmp.name)
+    local_filename = s3_hook.download_file(key=s3_key, bucket_name=s3_bucket)
+    psql_hook.bulk_load(table=postgres_table, tmp_file=local_filename)
 
 
 with DAG(
