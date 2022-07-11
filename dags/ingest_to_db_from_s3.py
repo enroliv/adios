@@ -77,7 +77,7 @@ with DAG(
                 position INTEGER,
                 artist VARCHAR(100),
                 song VARCHAR(100),
-                indicativerevenue NUMERIC,
+                indicative_revenue NUMERIC,
                 us INTEGER,
                 uk INTEGER,
                 de INTEGER,
