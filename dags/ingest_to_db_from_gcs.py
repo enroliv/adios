@@ -31,18 +31,18 @@ POSTGRES_CONN_ID = "ml_conn"
 POSTGRES_TABLE_NAME = "monthly_charts_data"
 
 
-def ingest_data_from_s3(
+def ingest_data_from_gcs(
     gcs_bucket: str,
     gcs_object: str,
     postgres_table: str,
     gcp_conn_id: str = "google_cloud_default",
     postgres_conn_id: str = "postgres_default",
 ):
-    """Ingest data from an S3 location into a postgres table.
+    """Ingest data from an GCS location into a postgres table.
 
     Args:
-        s3_bucket (str): Name of the s3 bucket.
-        s3_key (str): Name of the s3 key.
+        gcs_bucket (str): Name of the bucket.
+        gcs_object (str): Name of the object.
         postgres_table (str): Name of the postgres table.
         gcp_conn_id (str): Name of the Google Cloud connection ID.
         postgres_conn_id (str): Name of the postgres connection ID.
@@ -103,12 +103,12 @@ with DAG(
 
     ingest_data = PythonOperator(
         task_id="ingest_data",
-        python_callable=ingest_data_from_s3,
+        python_callable=ingest_data_from_gcs,
         op_kwargs={
             "gcp_conn_id": GCP_CONN_ID,
             "postgres_conn_id": POSTGRES_CONN_ID,
-            "s3_bucket": GCS_BUCKET_NAME,
-            "s3_key": GCS_KEY_NAME,
+            "gcs_bucket": GCS_BUCKET_NAME,
+            "gcs_object": GCS_KEY_NAME,
             "postgres_table": POSTGRES_TABLE_NAME,
         },
         trigger_rule=TriggerRule.ONE_SUCCESS,
