@@ -50,6 +50,9 @@ def ingest_data_from_s3(
     s3_hook = S3Hook(aws_conn_id=aws_conn_id)
     psql_hook = PostgresHook(postgres_conn_id)
     local_filename = s3_hook.download_file(key=s3_key, bucket_name=s3_bucket)
+    print(local_filename)
+    with open(local_filename, "r") as tmp:
+        print(tmp.readline())
     psql_hook.bulk_load(table=postgres_table, tmp_file=local_filename)
 
 
