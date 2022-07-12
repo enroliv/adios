@@ -9,7 +9,23 @@ with DAG(
     start_workflow = DummyOperator(task_id="start_workflow")
     validate = DummyOperator(task_id="validate")
     prepare = PostgresOperator(
-        task_id="prepare", postgres_conn_id="ml_conn", sql=""
+        task_id="prepare",
+        postgres_conn_id="ml_conn",
+        sql="""
+            CREATE TABLE monthly_charts_data (
+                month VARCHAR(10) NOT NULL,
+                position INTEGER NOT NULL,
+                artist VARCHAR(100) NOT NULL,
+                song VARCHAR(100) NOT NULL,
+                indicative_revenue NUMERIC NOT NULL,
+                us INTEGER,
+                uk INTEGER,
+                de INTEGER,
+                fr INTEGER,
+                ca INTEGER,
+                au INTEGER
+            )
+        """,
     )
     load = DummyOperator(task_id="load")
     end_workflow = DummyOperator(task_id="end_workflow")
