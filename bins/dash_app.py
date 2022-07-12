@@ -19,7 +19,7 @@ def load_data():
     data = pandas.DataFrame()
     try:
         conn = sqlalchemy.create_engine(
-            "postgresql://postgres:post@localhost:5432/ml_samples"
+            "postgresql://nagare:PostGre5@localhost:5433/ml_samples"
         )
         data = pandas.read_sql_table("monthly_charts_data", con=conn)
     except Exception:
@@ -34,34 +34,34 @@ def load_data():
 
 def all_time_top_revenued_artists(data: DataFrame, top: int = 10) -> Figure:
     indexes = (
-        data[["artist", "indicativerevenue"]].groupby(["artist"]).idxmax()
+        data[["artist", "indicative_revenue"]].groupby(["artist"]).idxmax()
     )
-    data = data.loc[indexes.indicativerevenue]
-    data = data.sort_values("indicativerevenue", ascending=False)
+    data = data.loc[indexes.indicative_revenue]
+    data = data.sort_values("indicative_revenue", ascending=False)
     data = data.head(top)
     fig = px.bar(
         data,
         x="artist",
-        y="indicativerevenue",
+        y="indicative_revenue",
         title="All Time Highest Revenued Artists",
-        labels={"artist": "Artist", "indicativerevenue": "Revenue"},
+        labels={"artist": "Artist", "indicative_revenue": "Revenue"},
     )
 
     return fig
 
 
 def all_time_top_revenued_songs(data: DataFrame, top: int = 10) -> Figure:
-    indexes = data[["song", "indicativerevenue"]].groupby(["song"]).idxmax()
-    data = data.loc[indexes.indicativerevenue]
-    data = data.sort_values("indicativerevenue", ascending=False)
+    indexes = data[["song", "indicative_revenue"]].groupby(["song"]).idxmax()
+    data = data.loc[indexes.indicative_revenue]
+    data = data.sort_values("indicative_revenue", ascending=False)
     data = data.head(top)
     data["title"] = data.song + " - " + data.artist
     fig = px.bar(
         data,
         x="title",
-        y="indicativerevenue",
+        y="indicative_revenue",
         title="All Time Highest Revenued Songs",
-        labels={"title": "Song Title", "indicativerevenue": "Revenue"},
+        labels={"title": "Song Title", "indicative_revenue": "Revenue"},
     )
 
     return fig
