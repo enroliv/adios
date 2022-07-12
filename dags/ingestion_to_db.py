@@ -37,7 +37,7 @@ with DAG(
         task_id="prepare",
         postgres_conn_id="ml_conn",
         sql="""
-            CREATE TABLE monthly_charts_data (
+            CREATE TABLE IF NOT EXISTS monthly_charts_data (
                 month VARCHAR(10) NOT NULL,
                 position INTEGER NOT NULL,
                 artist VARCHAR(100) NOT NULL,
