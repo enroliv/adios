@@ -1,7 +1,32 @@
 from airflow.models import DAG
 from airflow.operators.dummy import DummyOperator
+from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.utils.dates import days_ago
+
+
+def ingest_data():
+    hook = PostgresHook(postgres_conn_id="ml_conn")
+    hook.insert_rows(
+        table="monthly_charts_data",
+        rows=[
+            [
+                "Jan 2000",
+                1,
+                "The Weeknd",
+                "Out Of time",
+                100.01,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+            ]
+        ],
+    )
+
 
 with DAG(
     "db_ingestion", start_date=days_ago(1), schedule_interval="@once"
@@ -27,7 +52,7 @@ with DAG(
             )
         """,
     )
-    load = DummyOperator(task_id="load")
+    load = PythonOperator(task_id="load", python_callable=ingest_data)
     end_workflow = DummyOperator(task_id="end_workflow")
 
     start_workflow >> validate >> prepare >> load >> end_workflow
