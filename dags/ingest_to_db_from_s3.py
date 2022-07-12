@@ -73,11 +73,11 @@ with DAG(
         postgres_conn_id=POSTGRES_CONN_ID,
         sql=f"""
             CREATE TABLE IF NOT EXISTS {POSTGRES_TABLE_NAME} (
-                month VARCHAR(10),
-                position INTEGER,
-                artist VARCHAR(100),
-                song VARCHAR(100),
-                indicative_revenue NUMERIC,
+                month VARCHAR(10) NOT NULL,
+                position INTEGER NOT NULL,
+                artist VARCHAR(100) NOT NULL,
+                song VARCHAR(100) NOT NULL,
+                indicative_revenue NUMERIC NOT NULL,
                 us INTEGER,
                 uk INTEGER,
                 de INTEGER,
