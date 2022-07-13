@@ -2,6 +2,7 @@ from airflow.models import DAG
 from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.sql import BranchSQLOperator
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
@@ -10,25 +11,12 @@ from airflow.utils.trigger_rule import TriggerRule
 
 
 def ingest_data():
-    hook = PostgresHook(postgres_conn_id="ml_conn")
-    hook.insert_rows(
-        table="monthly_charts_data",
-        rows=[
-            [
-                "Jan 2000",
-                1,
-                "The Weeknd",
-                "Out Of time",
-                100.01,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-            ]
-        ],
+    s3_hook = S3Hook(aws_conn_id="aws_default")
+    psql_hook = PostgresHook(postgres_conn_id="ml_conn")
+    file = s3_hook.download_file(
+        key="datasets/chart-data.csv", bucket_name="bootcamp-project-assets"
     )
+    psql_hook.bulk_load(table="monthly_charts_data", tmp_file=file)
 
 
 with DAG(
