@@ -1,3 +1,7 @@
+"""Data Ingestion Workflow
+
+Author: Enrique Olivares <enrique.olivares@wizeline.com>
+"""
 from airflow.models import DAG
 from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
@@ -22,6 +26,7 @@ def ingest_data():
 with DAG(
     "db_ingestion", start_date=days_ago(1), schedule_interval="@once"
 ) as dag:
+    dag.doc_md = __doc__
     start_workflow = DummyOperator(task_id="start_workflow")
     validate = S3KeySensor(
         task_id="validate",
