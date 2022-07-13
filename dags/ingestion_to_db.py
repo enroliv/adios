@@ -2,6 +2,7 @@ from airflow.models import DAG
 from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.sql import BranchSQLOperator
+from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.utils.dates import days_ago
@@ -34,7 +35,12 @@ with DAG(
     "db_ingestion", start_date=days_ago(1), schedule_interval="@once"
 ) as dag:
     start_workflow = DummyOperator(task_id="start_workflow")
-    validate = DummyOperator(task_id="validate")
+    validate = S3KeySensor(
+        task_id="validate",
+        aws_conn_id="aws_default",
+        bucket_name="bootcamp-project-assets",
+        bucket_key="datasets/chart-data.csv",
+    )
     prepare = PostgresOperator(
         task_id="prepare",
         postgres_conn_id="ml_conn",
